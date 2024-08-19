@@ -1,0 +1,193 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "from azureml.core import Workspace, Dataset, Datastore\n",
+        "import os\n",
+        "from azureml.core.authentication import InteractiveLoginAuthentication\n",
+        "from datetime import datetime, date, timedelta\n",
+        "import argparse\n",
+        "from azureml.core import Run"
+      ],
+      "outputs": [],
+      "execution_count": 1,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1723966999581
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "interactive_auth = InteractiveLoginAuthentication(tenant_id=\"f56f1f69-458e-427b-bada-4cba658f7917\", force=True)\n",
+        "ws = Workspace.from_config(\"Users/mypersonall3099/Online_retail/config.json\")\n",
+        "\n",
+        "#Name of blob datastore\n",
+        "data_store_name = 'workspaceblobstore'\n",
+        "\n",
+        "# Use the correct container name and storage account name\n",
+        "container_name = 'azureml-blobstore-7ce76f32-f5fe-4dd3-b900-96fb92b58ebb'\n",
+        "account_name = 'onlineretail3582987100'\n",
+        "\n",
+        "datastore = Datastore.get(ws, data_store_name)\n",
+        "\n",
+        "#-----------------------------ArgumentParser-----------------------------------#\n",
+        "\n",
+        "parser = argparse.ArgumentParser()\n",
+        "parser.add_argument(\"--input-data\", type=str)\n",
+        "args = parser.parse_args()\n",
+        "\n",
+        "#-----------------------------Run-----------------------------------#\n",
+        "run = Run.get_context()\n",
+        "\n",
+        "\n",
+        "#-----------------------------Read_data-----------------------------------#\n",
+        "dataset = Dataset.Tabular.from_delimited_files(path=[(datastore, \"Users/mypersonall3099/Online_retail/online_retail_II.csv\")])\n",
+        "df = dataset.to_pandas_dataframe()\n",
+        "df"
+      ],
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stderr",
+          "text": "usage: ipykernel_launcher.py [-h] [--input-data INPUT_DATA]\nipykernel_launcher.py: error: unrecognized arguments: -f /home/azureuser/.local/share/jupyter/runtime/kernel-11f4e509-38de-40c6-aca0-70873be4c2b7.json\n"
+        },
+        {
+          "output_type": "error",
+          "ename": "SystemExit",
+          "evalue": "2",
+          "traceback": [
+            "An exception has occurred, use %tb to see the full traceback.\n",
+            "\u001b[0;31mSystemExit\u001b[0m\u001b[0;31m:\u001b[0m 2\n"
+          ]
+        }
+      ],
+      "execution_count": 4,
+      "metadata": {
+        "gather": {
+          "logged": 1723967065391
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "ws = Workspace.from_config(\"Users/mypersonall3099/Online_retail/config.json\")"
+      ],
+      "outputs": [],
+      "execution_count": 5,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1723967682652
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "ws"
+      ],
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "execution_count": 6,
+          "data": {
+            "text/plain": "Workspace.create(name='OnlineRetail', subscription_id='d8c4fe8f-f720-48ac-86e8-880576d9cd7a', resource_group='OnlineRetail')"
+          },
+          "metadata": {}
+        }
+      ],
+      "execution_count": 6,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        },
+        "gather": {
+          "logged": 1723967685587
+        }
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "source_directory = 'Users/mypersonall3099/Online_retail/tmp'"
+      ],
+      "outputs": [],
+      "execution_count": null,
+      "metadata": {
+        "jupyter": {
+          "source_hidden": false,
+          "outputs_hidden": false
+        },
+        "nteract": {
+          "transient": {
+            "deleting": false
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python310-sdkv2",
+      "language": "python",
+      "display_name": "Python 3.10 - SDK v2"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.10.14",
+      "mimetype": "text/x-python",
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "pygments_lexer": "ipython3",
+      "nbconvert_exporter": "python",
+      "file_extension": ".py"
+    },
+    "microsoft": {
+      "ms_spell_check": {
+        "ms_spell_check_language": "en"
+      },
+      "host": {
+        "AzureML": {
+          "notebookHasBeenCompleted": true
+        }
+      }
+    },
+    "kernel_info": {
+      "name": "python310-sdkv2"
+    },
+    "nteract": {
+      "version": "nteract-front-end@1.0.0"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 2
+}
