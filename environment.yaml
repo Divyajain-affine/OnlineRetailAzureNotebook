@@ -13,4 +13,6 @@ dependencies:
       - azureml-defaults
       - joblib
       - scikit-learn
+      - matplotlib
+
 

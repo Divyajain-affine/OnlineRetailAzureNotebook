@@ -2,9 +2,10 @@ from data_utils import DataUtils
 import joblib
 import math
 from pmdarima import auto_arima
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from azureml.core import Run
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 class TimeSeriesModeling:
@@ -21,8 +22,10 @@ class TimeSeriesModeling:
     @staticmethod
     def evaluate_model(model, test):
         predictions = model.predict(n_periods=len(test))
-        rmse = math.sqrt(mean_squared_error(test['Sales'], predictions))
-        return rmse, predictions
+        mse = mean_squared_error(test['Sales'], predictions)
+        rmse = math.sqrt(mse)
+        mae = mean_absolute_error(test['Sales'], predictions)
+        return rmse, mse, mae, predictions
 
     @staticmethod
     def save_and_upload_model(best_model, filename, datastore, target_path="models/"):
@@ -31,6 +34,22 @@ class TimeSeriesModeling:
         
         # Upload model to datastore
         DataUtils.upload_to_blob(datastore, "tmp/", target_path)
+
+    @staticmethod
+    def plot_forecast(test, predictions):
+        plt.figure(figsize=(10, 6))
+        plt.plot(test['InvoiceDate'], test['Sales'], label='Actual Sales', color='blue')
+        plt.plot(test['InvoiceDate'], predictions, label='Predicted Sales', color='red', linestyle='--')
+        plt.xlabel('Date')
+        plt.ylabel('Sales')
+        plt.title('Actual vs Predicted Sales')
+        plt.legend()
+        plt.grid(True)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig('forecast_plot.png')  # Save the plot locally
+        plt.close()  # Close the plot to free up memory
+        return 'forecast_plot.png'  # Return the path to the saved plot
 
     @staticmethod
     def run_pipeline(tenant_id: str, config_path: str, data_store_name: str, train_path: str, test_path: str) -> None:
@@ -52,12 +71,21 @@ class TimeSeriesModeling:
         model = TimeSeriesModeling.train_model(train)
 
         # Evaluate Model
-        rmse, _ = TimeSeriesModeling.evaluate_model(model, test)
+        rmse, mse, mae, predictions = TimeSeriesModeling.evaluate_model(model, test)
+
+        # Log metrics
+        run.log('RMSE', rmse)
+        run.log('MSE', mse)
+        run.log('MAE', mae)
 
         # Log model details
-        run.log("order", str(model.order))
-        run.log("seasonal_order", str(model.seasonal_order))
-        run.log("rmse", rmse)
+        print(f"Order: {model.order}")
+        print(f"Seasonal Order: {model.seasonal_order}")
+        print(f"RMSE: {rmse}")
+
+        # Plot forecast and upload plot as an artifact
+        plot_path = TimeSeriesModeling.plot_forecast(test, predictions)
+        run.upload_file('outputs/forecast_plot.png', plot_path)
 
         # Save and upload model 
         if rmse < float("inf"):
@@ -65,8 +93,8 @@ class TimeSeriesModeling:
             TimeSeriesModeling.save_and_upload_model(best_model, "best_autoarima_model.pkl", ws.get_default_datastore())
 
         # Complete the run
-        run.complete()
         print("Model Training and Upload Completed")
+        run.complete()
 
 if __name__ == "__main__":
 
